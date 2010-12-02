@@ -20,15 +20,20 @@ function olark_menu() {
  * Implementation of hook_footer()
  */
 function olark_footer() {
-  if (!variable_get('olark_context', 0)) {
-    olark_add_js();
-    return variable_get('olark_code', '');
-  }
-  else {
-    if ($plugin = context_get_plugin('reaction', 'olark_add')) {
-      if ($plugin->execute()) {
-        olark_add_js();
-        return variable_get('olark_code', '');
+  // note that the 'olark_enable' variable can be (un)set in
+  // the $conf array in settings.php, or by another module to enable/disable
+  // however, there is not a user interface for this variable
+  if (variable_get('olark_enable', 1)) {
+    if (!variable_get('olark_context', 0)) {
+      olark_add_js();
+      return variable_get('olark_code', '');
+    }
+    else {
+      if ($plugin = context_get_plugin('reaction', 'olark_add')) {
+        if ($plugin->execute()) {
+          olark_add_js();
+          return variable_get('olark_code', '');
+        }
       }
     }
   }
@@ -89,8 +94,8 @@ function olark_settings() {
   if (module_exists('context')) {
     $form['olark_context'] = array(
       '#type' => 'checkbox',
-      '#title' => t('Use <a href="!context_url">Context module</a> to choose when Olark is added to the page.'),
-      '#description' => t("Javascript code block from Olark.com"),
+      '#title' => t('Use <a href="!context_url">Context module</a> to choose when Olark is added to the page.', array('!context_url' => url('admin/build/context'))),
+      '#description' => t('Javascript code block from <a href="http://www.olark.com/install">Olark.com</a>.'),
       '#default_value' => variable_get('olark_context', 1),
     );
   }
@@ -108,10 +113,13 @@ function olark_add_js() {
     $setting = array('olark' => array());
     
     if ($user->uid) {
+      $setting['olark']['uid'] = $user->uid;
       $setting['olark']['name'] = $user->name;
-      //$setting['olark']['uid'] = $user->uid;
+      //$setting['olark']['mail'] = t('email !mail', array('!mail' => $user->mail));
       $setting['olark']['mail'] = $user->mail;
+      $setting['olark']['roles'] = t('roles !roles', array('!roles' => implode(', ', $user->roles)));
       $setting['olark']['userpage'] = url('user/' . $user->uid, array('absolute' => TRUE));
+      $setting['olark']['loggedinas'] = t('logged in as !link', array('!link' => l($user->name, 'user/' . $user->uid, array('absolute' => TRUE))));
     }
     
     drupal_add_js($setting, 'setting');
