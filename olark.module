@@ -1,7 +1,13 @@
 <?php
+// $Id:
 
 /**
- * Implementation of hook_menu()
+ * @file
+ *   Integrates Olark Chat in a Drupal site.
+ */
+
+/**
+ * Implements hook_menu().
  */
 function olark_menu() {
   $items = array();
@@ -17,12 +23,12 @@ function olark_menu() {
 }
 
 /**
- * Implementation of hook_footer()
+ * Implements hook_footer().
  */
 function olark_footer() {
-  // note that the 'olark_enable' variable can be (un)set in
+  // Note that the 'olark_enable' variable can be (un)set in
   // the $conf array in settings.php, or by another module to enable/disable
-  // however, there is not a user interface for this variable
+  // however, there is not a user interface for this variable.
   if (variable_get('olark_enable', 1)) {
     if (!variable_get('olark_context', 0)) {
       olark_add_js();
@@ -40,7 +46,7 @@ function olark_footer() {
 }
 
 /**
- * Implementation of hook_context_registry().
+ * Implements hook_context_registry().
  */
 function olark_context_registry() {
   return array(
@@ -55,7 +61,7 @@ function olark_context_registry() {
 }
 
 /**
- * Notify CTools that we'll be using the plugin API with Context module
+ * Notify CTools that we'll be using the plugin API with Context module.
  */
 function olark_ctools_plugin_api($module, $api) {
   if ($module == 'context' && $api == 'plugins') {
@@ -64,13 +70,13 @@ function olark_ctools_plugin_api($module, $api) {
 }
 
 /**
- * CTools plugin API hook for Context
+ * CTools plugin API hook for Context.
  */
 function olark_context_plugins() {
   $plugins = array();
   $plugins['olark_context_reaction_add'] = array(
     'handler' => array(
-      'path' => drupal_get_path('module', 'olark') .'/plugins',
+      'path' => drupal_get_path('module', 'olark') . '/plugins',
       'file' => 'olark_context_reaction_add.inc',
       'class' => 'olark_context_reaction_add',
       'parent' => 'context_reaction',
@@ -81,27 +87,30 @@ function olark_context_plugins() {
 }
 
 /**
- * Settings form
+ * Settings form.
  */
 function olark_settings() {
   $form = array();
   $form['olark_code'] = array(
     '#type' => 'textarea',
     '#title' => t('Olark code'),
-    '#description' => t("Javascript code block from Olark.com"),
+    '#description' => t('Paste the Javascript code block from <a href="http://olark.com/install">Olark.com</a>'),
     '#default_value' => variable_get('olark_code', ''),
   );
   if (module_exists('context')) {
     $form['olark_context'] = array(
       '#type' => 'checkbox',
-      '#title' => t('Use <a href="!context_url">Context module</a> to choose when Olark is added to the page.', array('!context_url' => url('admin/build/context'))),
-      '#description' => t('Javascript code block from <a href="http://www.olark.com/install">Olark.com</a>.'),
-      '#default_value' => variable_get('olark_context', 1),
+      '#title' => t('Use Context to choose when Olark is added to the page.'),
+      '#description' => t('The Olark code will be included on all pages of your site by default. You can use <a href="!context_url">Context module</a> to fine tune when and where it will be displayed.', array('!context_url' => url('admin/build/context'))),
+      '#default_value' => variable_get('olark_context', 0),
     );
   }
   return system_settings_form($form);
 }
 
+/**
+ * Builds and inserts the correct Olark Javascript into the page.
+ */
 function olark_add_js() {
   static $added;
   if (!isset($added)) {
@@ -112,6 +121,8 @@ function olark_add_js() {
     
     $setting = array('olark' => array());
     
+    // If the user is logged in, let's get some pertinent information and
+    // pass it along as well.
     if ($user->uid) {
       $setting['olark']['uid'] = $user->uid;
       $setting['olark']['name'] = $user->name;

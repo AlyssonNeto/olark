@@ -1,5 +1,10 @@
 <?php
-// $Id: $
+// $Id:
+
+/**
+ * @file
+ *   Adds a Context module reaction for the Olark module.
+ */
 
 /**
  * Add Olark code to the page.
@@ -25,6 +30,4 @@ class olark_context_reaction_add extends context_reaction {
       }
     }
   }
-
-
 }
